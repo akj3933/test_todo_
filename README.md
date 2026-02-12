@@ -2,6 +2,26 @@
 
 Комплексное приложение для управления задачами (ToDo List) с Django backend, Telegram ботом и Docker.
 
+## 🚀 Быстрый старт
+
+```bash
+# 1. Клонируйте репозиторий
+git clone <repository-url>
+cd test_todo_
+
+# 2. Настройте Telegram Bot Token в .env
+# Получите токен у @BotFather в Telegram
+nano .env  # Замените TELEGRAM_BOT_TOKEN=your-bot-token-here
+
+# 3. Запустите все сервисы
+docker-compose up --build
+
+# 4. Готово! Откройте браузер:
+# - Admin: http://localhost:8000/admin/ (admin/admin123)
+# - API Docs: http://localhost:8000/api/docs/
+# - Найдите бота в Telegram и отправьте /start
+```
+
 ## Архитектура решения
 
 ### Компоненты системы
