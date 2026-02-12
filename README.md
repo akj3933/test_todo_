@@ -109,16 +109,21 @@ DJANGO_API_URL=http://backend:8000/api
 docker-compose up --build
 ```
 
-4. **В отдельном терминале создайте суперпользователя для Django Admin**
-```bash
-docker-compose exec backend python manage.py createsuperuser
-```
+При первом запуске автоматически создастся тестовый суперпользователь:
+- Username: `admin`
+- Password: `admin123`
 
-5. **Готово! Сервисы доступны по адресам:**
+4. **Готово! Сервисы доступны по адресам:**
    - Django Admin: http://localhost:8000/admin/
    - API Documentation: http://localhost:8000/api/docs/
    - API Root: http://localhost:8000/api/
    - Telegram Bot: найдите своего бота в Telegram
+
+5. **(Опционально) Протестируйте API**
+```bash
+# В отдельном терминале
+./test_api.sh
+```
 
 ### Остановка сервисов
 ```bash
@@ -130,11 +135,33 @@ docker-compose down
 docker-compose down -v
 ```
 
+## Тестирование
+
+### Локальное тестирование (без Docker)
+Перед запуском Docker можно протестировать синтаксис и конфигурацию:
+```bash
+./test_setup.sh
+```
+
+### Тестирование API (после запуска Docker)
+После запуска сервисов с помощью docker-compose, можно протестировать API:
+```bash
+./test_api.sh
+```
+
+Этот скрипт:
+- Создаст тестовые категории
+- Создаст тестовые задачи
+- Протестирует все основные API endpoints
+- Покажет примеры использования API
+
 ## Использование
 
 ### Django Admin
 1. Откройте http://localhost:8000/admin/
-2. Войдите используя созданного суперпользователя
+2. Войдите используя тестового суперпользователя:
+   - Username: `admin`
+   - Password: `admin123`
 3. Управляйте задачами и категориями через интерфейс
 
 ### API
@@ -159,6 +186,74 @@ curl -X POST http://localhost:8000/api/tasks/ \
 3. Используйте команды для работы с задачами:
    - `/list` - посмотреть свои задачи
    - `/add` - создать новую задачу
+
+## Полезные команды Docker
+
+### Просмотр логов
+```bash
+# Все сервисы
+docker-compose logs -f
+
+# Конкретный сервис
+docker-compose logs -f backend
+docker-compose logs -f bot
+docker-compose logs -f celery
+```
+
+### Выполнение команд Django
+```bash
+# Создать миграции
+docker-compose exec backend python manage.py makemigrations
+
+# Применить миграции
+docker-compose exec backend python manage.py migrate
+
+# Создать суперпользователя вручную
+docker-compose exec backend python manage.py createsuperuser
+
+# Запустить Django shell
+docker-compose exec backend python manage.py shell
+```
+
+### Перезапуск сервисов
+```bash
+# Перезапустить один сервис
+docker-compose restart backend
+
+# Пересобрать и перезапустить
+docker-compose up --build -d backend
+```
+
+### Очистка
+```bash
+# Остановить и удалить контейнеры, но сохранить данные
+docker-compose down
+
+# Удалить всё, включая volumes (БД будет очищена!)
+docker-compose down -v
+
+# Удалить неиспользуемые образы
+docker system prune -a
+```
+
+## Учетные данные по умолчанию
+
+### Django Admin
+- URL: http://localhost:8000/admin/
+- Username: `admin`
+- Password: `admin123`
+
+### PostgreSQL
+- Host: `localhost` (или `db` внутри Docker)
+- Port: `5432`
+- Database: `todolist`
+- Username: `todouser`
+- Password: `todopassword`
+
+### Тестовый пользователь
+- Username: `testuser`
+- Password: `test123`
+- User ID: 2 (используйте для тестирования API)
 
 ## Структура проекта
 
@@ -188,8 +283,45 @@ test_todo_/
 ├── docker-compose.yml      # Оркестрация сервисов
 ├── .env                    # Переменные окружения
 ├── .env.example           # Пример переменных окружения
+├── test_setup.sh          # Скрипт проверки настроек
+├── test_api.sh            # Скрипт тестирования API
 └── README.md              # Этот файл
 ```
+
+## Celery - фоновые задачи и уведомления
+
+### Как это работает
+Celery Beat запускает задачу `check_task_deadlines` каждые 5 минут. Эта задача:
+1. Находит задачи с приближающимся дедлайном (в течение 30 минут)
+2. Находит просроченные задачи
+3. Отправляет уведомления (логирование) для каждой найденной задачи
+4. Помечает задачи как уведомленные (`notification_sent=True`)
+
+### Просмотр задач Celery
+```bash
+# Логи Celery worker
+docker-compose logs -f celery
+
+# Логи Celery beat (планировщик)
+docker-compose logs -f celery-beat
+```
+
+### Запуск задачи вручную
+```bash
+# Войти в Django shell
+docker-compose exec backend python manage.py shell
+
+# Выполнить в shell:
+from tasks.tasks import check_task_deadlines
+result = check_task_deadlines.delay()
+print(result.get())
+```
+
+### Управление периодическими задачами
+Периодические задачи можно настроить через Django Admin:
+1. Перейдите в http://localhost:8000/admin/
+2. Найдите раздел "Periodic Tasks"
+3. Добавьте или измените расписание задач
 
 ## Трудности и решения
 
