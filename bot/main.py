@@ -4,14 +4,10 @@ from datetime import datetime
 
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram_dialog import Dialog, Window, DialogManager, StartMode, setup_dialogs
-from aiogram_dialog.widgets.text import Const, Format
-from aiogram_dialog.widgets.kbd import Button, Row, Select, Back
-from aiogram_dialog.widgets.input import TextInput
 
 from config import BOT_TOKEN
 from api_client import TodoAPIClient
@@ -28,12 +24,10 @@ dp = Dispatcher(storage=storage)
 
 class TaskStates(StatesGroup):
     """States for task creation dialog."""
-    main_menu = State()
     entering_title = State()
     entering_description = State()
     selecting_priority = State()
     entering_due_date = State()
-    selecting_categories = State()
 
 
 async def format_task(task: dict) -> str:
@@ -238,9 +232,6 @@ async def process_due_date(message: Message, state: FSMContext):
 async def main():
     """Start the bot."""
     logger.info("Starting bot...")
-    
-    # Setup dialogs
-    setup_dialogs(dp)
     
     # Start polling
     await dp.start_polling(bot)

@@ -16,6 +16,16 @@ def generate_custom_id(prefix=''):
     return f"{prefix}{timestamp[-12:]}{hash_value}"
 
 
+def generate_category_id():
+    """Generate ID for Category model."""
+    return generate_custom_id('cat_')
+
+
+def generate_task_id():
+    """Generate ID for Task model."""
+    return generate_custom_id('task_')
+
+
 class Category(models.Model):
     """
     Category (tag) for organizing tasks.
@@ -24,7 +34,7 @@ class Category(models.Model):
         max_length=50, 
         primary_key=True, 
         editable=False,
-        default=lambda: generate_custom_id('cat_')
+        default=generate_category_id
     )
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
@@ -61,7 +71,7 @@ class Task(models.Model):
         max_length=50,
         primary_key=True,
         editable=False,
-        default=lambda: generate_custom_id('task_')
+        default=generate_task_id
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
