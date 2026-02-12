@@ -382,7 +382,7 @@ print(result.get())
 
 - **Backend**: Django 4.2, Django REST Framework, PostgreSQL
 - **Async Tasks**: Celery, Redis, django-celery-beat
-- **Bot**: Aiogram 3.4, aiogram-dialog
+- **Bot**: Aiogram 3.4
 - **Containerization**: Docker, Docker Compose
 - **API Documentation**: drf-spectacular (OpenAPI/Swagger)
 

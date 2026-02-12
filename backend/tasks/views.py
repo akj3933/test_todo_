@@ -67,7 +67,12 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def overdue(self, request):
         """Get all overdue tasks."""
-        tasks = [task for task in self.queryset if task.is_overdue()]
+        from django.utils import timezone
+        now = timezone.now()
+        tasks = self.queryset.filter(
+            due_date__lt=now,
+            status__in=['pending', 'in_progress']
+        )
         serializer = self.get_serializer(tasks, many=True)
         return Response(serializer.data)
 
